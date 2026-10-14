@@ -32,6 +32,11 @@ function send(res, status, type, body) {
   res.end(body);
 }
 
+// Apps from a custom repository get a slug prefixed with a repository hash
+// (e.g. "a1b2c3d4_thread"). Supervisor names the container's host after it,
+// with "_" swapped for "-", so the full slug can be recovered from HOSTNAME.
+const APP_SLUG = (process.env.HOSTNAME ?? "thread").replace(/-/g, "_");
+
 // s6-overlay resets the environment for the container's CMD, so the token the
 // Supervisor injects may only be readable from s6's saved copy.
 const S6_TOKEN_FILE = "/run/s6/container_environment/SUPERVISOR_TOKEN";
@@ -124,6 +129,7 @@ const page = (userId, ingressPath, allowed, services) => `<!doctype html>
 <p>Your HA user ID: <code>${escapeHtml(userId ?? "(none)")}</code></p>
 <p>Ingress path: <code>${escapeHtml(ingressPath ?? "(none)")}</code></p>
 <p>Allowed: <b>${allowed ? "yes" : "no"}</b></p>
+<p>App slug: <code>${escapeHtml(APP_SLUG)}</code></p>
 <p>Supervisor token: <b>${escapeHtml(supervisorToken().source)}</b></p>
 <p>Mobile app notify services (use one of these in notify_targets):</p>
 <ul>${services.map((n) => `<li><code>${escapeHtml(n)}</code></li>`).join("")}</ul>
@@ -148,12 +154,10 @@ const page = (userId, ingressPath, allowed, services) => `<!doctype html>
 <button data-mode="top" data-url="mailto:test@example.com">mailto: window.top.location</button>
 <button data-mode="copy" data-url="tel:+15555550123">Copy number (fallback)</button>
 <h2>Notification tap URL</h2>
-<form method="post" action="notify"><input type="hidden" name="url" value="/hassio/ingress/thread">
-  <button>Send with /hassio/ingress/thread</button></form>
-<form method="post" action="notify"><input type="hidden" name="url" value="/app/thread">
-  <button>Send with /app/thread</button></form>
-<form method="post" action="notify"><input type="hidden" name="url" value="/config/app/thread/info">
-  <button>Send with /config/app/thread/info (control)</button></form>
+${[`/app/${APP_SLUG}`, `/hassio/ingress/${APP_SLUG}`, `/config/app/${APP_SLUG}/info`]
+  .map((url) => `<form method="post" action="notify"><input type="hidden" name="url" value="${escapeHtml(url)}">
+  <button>Send with ${escapeHtml(url)}</button></form>`)
+  .join("\n")}
 </body></html>`;
 
 http
