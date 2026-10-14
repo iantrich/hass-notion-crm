@@ -1,4 +1,4 @@
-import { mkdtemp } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -6,6 +6,7 @@ import { makePerson, type NotionSnapshot } from "@thread/core";
 import { AvatarCache, avatarKey } from "../src/avatars.js";
 import { createApp, INGRESS_PROXY } from "../src/http/app.js";
 import { placeholderPage } from "../src/http/placeholder.js";
+import { StaticFiles } from "../src/http/static.js";
 import { MockNotionService } from "../src/mock/mockService.js";
 import { parseOptions } from "../src/options.js";
 import { AppState } from "../src/state/appState.js";
@@ -15,7 +16,7 @@ import { fakeFetch } from "./helpers.js";
 const ME = "user-ian";
 const photo = "https://files.example.com/ws/uuid/image.png";
 
-async function makeApp({ dev = false, peer = INGRESS_PROXY } = {}) {
+async function makeApp({ dev = false, peer = INGRESS_PROXY, web = null as StaticFiles | null } = {}) {
   const dir = await mkdtemp(join(tmpdir(), "thread-http-"));
   const service = new MockNotionService("2026-10-14");
   const state = new AppState(service, new SnapshotStore(dir));
@@ -31,6 +32,7 @@ async function makeApp({ dev = false, peer = INGRESS_PROXY } = {}) {
     mobileAppServices: async () => ["mobile_app_iphone"],
     peerAddress: () => peer,
     dev,
+    web,
     indexHtml: placeholderPage,
   });
   return { app, state };
@@ -160,5 +162,45 @@ describe("status page", () => {
     const ian = await (await app.request("/", as(ME))).text();
     expect(ian).toContain("Last synced");
     expect(ian).toContain("mobile_app_iphone");
+  });
+});
+
+describe("web app", () => {
+  async function webDir() {
+    const dir = await mkdtemp(join(tmpdir(), "thread-web-"));
+    await mkdir(join(dir, "assets"));
+    await writeFile(join(dir, "index.html"), "<!doctype html><title>Thread</title>");
+    await writeFile(join(dir, "assets", "app-abc123.js"), "console.log(1)");
+    return new StaticFiles(dir);
+  }
+
+  it("serves index.html for routes and hashed assets with long caching", async () => {
+    const { app } = await makeApp({ web: await webDir() });
+    const index = await app.request("/", as("anyone"));
+    expect(index.status).toBe(200);
+    expect(index.headers.get("Cache-Control")).toBe("no-cache");
+    expect(await index.text()).toContain("<title>Thread</title>");
+    const asset = await app.request("/assets/app-abc123.js", as("anyone"));
+    expect(asset.headers.get("Content-Type")).toContain("text/javascript");
+    expect(asset.headers.get("Cache-Control")).toContain("immutable");
+    expect((await app.request("/assets/missing.js", as("anyone"))).status).toBe(404);
+  });
+
+  it("never serves files outside the web directory", async () => {
+    const { app } = await makeApp({ web: await webDir() });
+    // URL parsing folds the dots away; what's left is a route, so it gets
+    // the app's index page, never the file.
+    const climbed = await (await app.request("/../../etc/passwd", as("anyone"))).text();
+    expect(climbed).toContain("<title>Thread</title>");
+    expect(climbed).not.toContain("root:");
+    const encoded = await (await app.request("/%2e%2e/%2e%2e/etc/hosts", as("anyone"))).text();
+    expect(encoded).toContain("<title>Thread</title>");
+  });
+
+  it("refuses escaping paths at the file level too", async () => {
+    const web = await webDir();
+    for (const path of ["../../../etc/passwd", "/..%2f..%2fetc/passwd", "/assets/../../index.html.bak"]) {
+      expect(await web.file(path)).toBeNull();
+    }
   });
 });

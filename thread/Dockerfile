@@ -9,16 +9,21 @@ WORKDIR /src
 COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
 COPY packages/server/package.json packages/server/
+COPY packages/web/package.json packages/web/
 RUN npm ci --ignore-scripts
+COPY tsconfig.base.json ./
 COPY packages/core packages/core
 COPY packages/server packages/server
-RUN npm run build -w @thread/server
+COPY packages/web packages/web
+RUN npm run build -w @thread/web && npm run build -w @thread/server
 
 FROM ${BUILD_FROM}
 ARG BUILD_VERSION
 ARG BUILD_ARCH
 RUN apk add --no-cache nodejs
 COPY --from=build /src/packages/server/dist/server.mjs /app/server.mjs
+# The server looks for the web app next to itself.
+COPY --from=build /src/packages/web/dist /app/web
 CMD [ "node", "/app/server.mjs" ]
 
 LABEL \

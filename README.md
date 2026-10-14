@@ -5,9 +5,9 @@ Thread, a personal CRM backed by Notion, packaged as a Home Assistant app
 ingress, so your HA login protects it, and the Notion token never leaves the
 app's backend.
 
-> **Status:** in development. The server syncs with Notion and serves its API;
-> the interface and notifications come next. `docs/spike-results.md` records
-> what the first test app proved on a real install.
+> **Status:** in development. Thread syncs with Notion and has its full
+> interface; notifications come next. `docs/spike-results.md` records what the
+> first test app proved on a real install.
 
 ## Install
 
@@ -27,14 +27,19 @@ The app is a TypeScript monorepo (Node 22):
 | Package | Contents |
 |---|---|
 | `packages/core` | Domain logic ported from the iOS app: models, Notion decoding and mapping, ordering, search, contact status and actions, and the daily notifications. Pure functions, no I/O. |
-| `packages/server` | The app's server: Notion client and sync, snapshot and photo caches in `/data`, and the HTTP API behind ingress. |
+| `packages/server` | The app's server: Notion client and sync, snapshot and photo caches in `/data`, the HTTP API behind ingress, and the built web app. |
+| `packages/web` | The interface: lit-html screens matching the iOS app, built with Vite. |
 
 ```bash
 npm install
 npm run typecheck && npm run lint && npm test
 
-# Run the server locally with made-up data, no Notion or Home Assistant:
-npm run dev -w @thread/server   # then open http://localhost:8099
+# Run locally with made-up data, no Notion or Home Assistant:
+npm run dev -w @thread/server   # the API on :8099
+npm run dev -w @thread/web      # the interface on :5173, proxying /api
+
+# Build everything, then run the end-to-end tests against the mock server:
+npm run build && npm run e2e
 ```
 
 Images are built by `.github/workflows/publish.yml` and pulled by Home

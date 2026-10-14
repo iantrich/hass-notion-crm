@@ -2,3 +2,6 @@
 **/dist
 .git
 docs
+test-results
+playwright-report
+**/dist-types

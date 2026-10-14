@@ -1,9 +1,12 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import type { Context } from "hono";
 import { dayOf } from "@thread/core";
 import { AvatarCache } from "./avatars.js";
 import { createApp } from "./http/app.js";
 import { placeholderPage } from "./http/placeholder.js";
+import { StaticFiles } from "./http/static.js";
 import { log } from "./log.js";
 import { MOCK_ME_ID, MockNotionService } from "./mock/mockService.js";
 import { NotionClient } from "./notion/client.js";
@@ -17,6 +20,9 @@ const PORT = 8099;
 const DATA_DIR = process.env.THREAD_DATA_DIR ?? "/data";
 const DEV = process.env.THREAD_DEV === "1";
 const MOCK = process.env.THREAD_MOCK === "1";
+// The built web app: next to the bundle in the image, or the web package's
+// build output when run from the repository.
+const WEB_DIR = process.env.THREAD_WEB_DIR ?? new URL("./web", import.meta.url).pathname;
 
 async function main() {
   const options = await loadOptions(`${DATA_DIR}/options.json`);
@@ -70,6 +76,7 @@ async function main() {
     mobileAppServices: () => supervisor?.mobileAppServices() ?? Promise.resolve([]),
     peerAddress: (c: Context) => (c.env as { incoming?: { socket?: { remoteAddress?: string } } }).incoming?.socket?.remoteAddress,
     dev: DEV,
+    web: existsSync(join(WEB_DIR, "index.html")) ? new StaticFiles(WEB_DIR) : null,
     indexHtml: placeholderPage,
   });
 
