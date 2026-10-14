@@ -45,10 +45,13 @@ function supervisorToken() {
 }
 
 async function notify(target, url) {
+  // Accept "notify.mobile_app_x" as well as "mobile_app_x": the prefixed form
+  // is how HA displays the service, so it's the natural thing to paste.
+  const service = target.replace(/^notify\./, "");
   const { token } = supervisorToken();
   if (!token) return "no SUPERVISOR_TOKEN";
   const response = await fetch(
-    `http://supervisor/core/api/services/notify/${encodeURIComponent(target)}`,
+    `http://supervisor/core/api/services/notify/${encodeURIComponent(service)}`,
     {
       method: "POST",
       headers: {

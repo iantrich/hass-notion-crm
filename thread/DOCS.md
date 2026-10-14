@@ -10,8 +10,8 @@ from any other user are refused, even admins.
 
 ### `notify_targets`
 
-Notify services to send Thread's notifications to, without the `notify.`
-prefix. For example: `mobile_app_ians_iphone`. Find yours under
+Notify services to send Thread's notifications to. For example:
+`mobile_app_ians_iphone` (a leading `notify.` is accepted and ignored). Find yours under
 **Developer tools → Actions** by searching for `notify.mobile_app`.
 
 ## Security
