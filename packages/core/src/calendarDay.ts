@@ -67,17 +67,25 @@ export function inYear(day: CalendarDay, year: number): CalendarDay {
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 // The calendar day an instant falls on in `timeZone` (an IANA name such as
-// "America/Chicago"). en-CA formats as YYYY-MM-DD.
+// "America/Chicago"). Built from the numeric parts rather than a locale's
+// formatted string: a Node.js build without full locale data falls back to
+// en-US ("10/14/2026"), and that string broke every page that used today.
 export function dayOf(instant: Date, timeZone: string): CalendarDay {
   let formatter = formatters.get(timeZone);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat("en-CA", {
+    formatter = new Intl.DateTimeFormat("en-US", {
       timeZone,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      calendar: "gregory",
+      numberingSystem: "latn",
     });
     formatters.set(timeZone, formatter);
   }
-  return formatter.format(instant);
+  const parts = formatter.formatToParts(instant);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  const day = `${part("year").padStart(4, "0")}-${part("month").padStart(2, "0")}-${part("day").padStart(2, "0")}`;
+  if (!isCalendarDay(day)) throw new Error(`Couldn't work out the date in ${timeZone}: got ${day}`);
+  return day;
 }
