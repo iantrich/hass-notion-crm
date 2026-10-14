@@ -8,7 +8,7 @@ import {
   type NotionSnapshot,
   type Person,
 } from "@thread/core";
-import { api, ApiError, type SetupResponse, type SnapshotResponse } from "./api.js";
+import { api, ApiError, type NotificationStatus, type SetupResponse, type SnapshotResponse } from "./api.js";
 import { parseRoute, type Route, type Tab } from "./router.js";
 
 // One state object, re-rendered as a whole on every change. lit-html only
@@ -45,6 +45,7 @@ export interface State {
   phase: Phase;
   data: SnapshotResponse | null;
   setup: SetupResponse | null;
+  notifications: NotificationStatus | null;
   route: Route;
   lastTab: Tab;
   search: { text: string; chip: "people" | "households" | "groups" };
@@ -72,6 +73,7 @@ export const state: State = {
   phase: { kind: "loading" },
   data: null,
   setup: null,
+  notifications: null,
   route: parseRoute(location.hash),
   lastTab: "home",
   search: { text: "", chip: "people" },
@@ -280,4 +282,30 @@ export function noteNavigation() {
 export function goBack(fallback: string) {
   if (navigations > 0) history.back();
   else location.replace(fallback);
+}
+
+// ---- Settings ----
+
+export async function loadSettings() {
+  try {
+    const [notifications, setup] = await Promise.all([api.notifications(), api.setup()]);
+    update((s) => {
+      s.notifications = notifications;
+      s.setup = setup;
+    });
+  } catch (error) {
+    toast((error as Error).message);
+  }
+}
+
+export async function sendTestNotification() {
+  const result = await write(async () => {
+    try {
+      return await api.testNotification();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 502) return { sent: false, failures: [error.message] };
+      throw error;
+    }
+  });
+  if (result) toast(result.sent ? "Test sent. Check your phone." : `Couldn't send: ${result.failures.join("; ")}`);
 }

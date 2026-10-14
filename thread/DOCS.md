@@ -41,6 +41,24 @@ The phones to send Thread's notifications to, such as `mobile_app_ians_iphone`.
 A leading `notify.` is accepted and ignored. The setup page lists the ones
 Home Assistant knows about.
 
+### Notifications
+
+Thread sends three notifications a day, in Home Assistant's time zone:
+
+| Time | What |
+|---|---|
+| 10:00 | Whose birthday it is today (including people hidden from lists) |
+| 15:00 | Close friends who just passed six weeks since you last logged an interaction with them |
+| 21:00 | A reminder to log the day's interactions, skipped if you already have |
+
+Before each one it syncs with Notion, so changes made there count. Each goes
+out at most once a day. If Home Assistant or the app is down at that time, a
+restart within the hour still sends it; after that it waits for tomorrow.
+Tapping a notification opens Thread.
+
+**Settings** (the gear on Home) shows when each was last checked and has a
+**Send test notification** button.
+
 ### `sync_interval_minutes`
 
 How often to sync with Notion, from 5 to 240 minutes. The default is 15.

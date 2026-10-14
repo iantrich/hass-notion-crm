@@ -66,7 +66,7 @@ export class SupervisorClient {
     return Object.keys(notify?.services ?? {}).filter((name) => name.startsWith("mobile_app_"));
   }
 
-  async notify(target: string, message: { title: string; message: string; data?: Record<string, unknown> }) {
+  async notify(target: string, message: { title?: string; message: string; data?: Record<string, unknown> }) {
     await this.request(`/services/notify/${encodeURIComponent(target)}`, {
       method: "POST",
       body: JSON.stringify(message),

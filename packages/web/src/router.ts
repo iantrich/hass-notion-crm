@@ -10,6 +10,7 @@ export type Route =
   | { name: "add" }
   | { name: "birthdays" }
   | { name: "interactions" }
+  | { name: "settings" }
   | { name: "person"; id: string; sheet: "log" | null }
   | { name: "household"; id: string }
   | { name: "group"; id: string }
@@ -31,6 +32,8 @@ export function parseRoute(hash: string): Route {
       return { name: "birthdays" };
     case "interactions":
       return { name: "interactions" };
+    case "settings":
+      return { name: "settings" };
     case "person":
       if (id) return { name: "person", id, sheet: extra === "log" ? "log" : null };
       break;
@@ -56,6 +59,7 @@ export const href = {
   add: () => "#/add",
   birthdays: () => "#/birthdays",
   interactions: () => "#/interactions",
+  settings: () => "#/settings",
   person: (id: string) => `#/person/${enc(id)}`,
   logInteraction: (personId: string) => `#/person/${enc(personId)}/log`,
   household: (id: string) => `#/household/${enc(id)}`,

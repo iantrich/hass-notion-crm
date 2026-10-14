@@ -5,8 +5,8 @@ Thread, a personal CRM backed by Notion, packaged as a Home Assistant app
 ingress, so your HA login protects it, and the Notion token never leaves the
 app's backend.
 
-> **Status:** in development. Thread syncs with Notion and has its full
-> interface; notifications come next. `docs/spike-results.md` records what the
+> **Status:** feature-complete against the iOS app: sync with Notion, the full
+> interface, and daily notifications through the Companion app. `docs/spike-results.md` records what the
 > first test app proved on a real install.
 
 ## Install

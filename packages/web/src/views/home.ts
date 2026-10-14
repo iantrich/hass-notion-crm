@@ -12,6 +12,7 @@ import {
 } from "@thread/core";
 import { avatar, avatarStack } from "../components.js";
 import { formatMonthDay, untilLabel } from "../format.js";
+import { icons } from "../icons.js";
 import { href } from "../router.js";
 import { snapshot, today } from "../state.js";
 import type { View } from "./view.js";
@@ -56,7 +57,7 @@ export function homeView(): View {
   return {
     title: "Thread",
     back: false,
-    actions: [],
+    actions: [{ icon: icons.gear, label: "Settings", href: href.settings() }],
     body: html`<div class="page">
       ${favs.length
         ? html`<div class="list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px 12px;padding:16px">

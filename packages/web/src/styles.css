@@ -108,7 +108,7 @@ textarea.input { min-height: 110px; resize: vertical; }
 .btn { min-height: 44px; padding: 0 18px; border-radius: 12px; background: var(--text); color: var(--bg); font-weight: 600; }
 .btn[disabled] { opacity: 0.4; cursor: default; }
 .btn.danger { background: var(--danger); }
-.btn.secondary { background: var(--surface); color: var(--text); }
+.btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--thread); }
 
 /* Banners and states. */
 .banner { margin: 8px 16px; padding: 8px 12px; border-radius: 12px; background: var(--danger); color: var(--bg); font: 500 11px var(--mono); }

@@ -1,5 +1,5 @@
 name: Thread
-version: "0.2.1"
+version: "0.3.0"
 slug: thread
 description: Personal CRM backed by Notion
 url: https://github.com/iantrich/hass-notion-crm

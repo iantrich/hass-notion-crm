@@ -14,6 +14,7 @@ import { missingNotionSettings, type Options } from "../options.js";
 import { NotSyncedError, type AppState } from "../state/appState.js";
 import type { PlaceholderInfo } from "./placeholder.js";
 import type { StaticFiles } from "./static.js";
+import type { KindStatus } from "../notifications/scheduler.js";
 
 // The Supervisor's ingress proxy: the only peer allowed to connect.
 export const INGRESS_PROXY = "172.30.32.2";
@@ -29,6 +30,11 @@ export interface AppDeps {
   peerAddress: (c: Context) => string | undefined;
   // Local development: any peer, and no HA user header required.
   dev: boolean;
+  // Status and a test send for the settings screen.
+  notifications: {
+    status: () => Promise<KindStatus[]>;
+    test: () => Promise<string[]>;
+  };
   // The built web app. Without it (running the server alone), "/" falls back
   // to the server-rendered status page.
   web: StaticFiles | null;
@@ -182,6 +188,20 @@ export function createApp(deps: AppDeps) {
       timeZone: deps.timeZone(),
     }),
   );
+
+  app.get("/api/notifications", async (c) =>
+    c.json({
+      targets: options.notifyTargets,
+      timeZone: deps.timeZone(),
+      kinds: await deps.notifications.status(),
+    }),
+  );
+
+  app.post("/api/notifications/test", async (c) => {
+    const failures = await deps.notifications.test();
+    if (failures.length) return c.json({ sent: false, failures, message: failures.join("; ") }, 502);
+    return c.json({ sent: true, failures });
+  });
 
   app.post("/api/people", async (c) => {
     try {

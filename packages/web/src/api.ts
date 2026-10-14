@@ -30,6 +30,12 @@ export interface SetupResponse {
   timeZone: string;
 }
 
+export interface NotificationStatus {
+  targets: string[];
+  timeZone: string;
+  kinds: { kind: "birthday" | "overdue" | "journal"; hour: number; lastSent: string | null }[];
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -78,6 +84,8 @@ export const api = {
   refresh: () => request<SnapshotResponse>("POST", "api/refresh"),
   refreshPerson: (id: string) => request<SnapshotResponse>("POST", `api/people/${encodeURIComponent(id)}/refresh`),
   setup: () => request<SetupResponse>("GET", "api/setup"),
+  notifications: () => request<NotificationStatus>("GET", "api/notifications"),
+  testNotification: () => request<{ sent: boolean; failures: string[] }>("POST", "api/notifications/test"),
   addPerson: (draft: NewPersonDraft) => request<Person>("POST", "api/people", draft),
   setFavorite: (id: string, isFavorite: boolean) =>
     request<Person>("PUT", `api/people/${encodeURIComponent(id)}/favorite`, { isFavorite }),

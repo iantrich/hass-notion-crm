@@ -10,7 +10,10 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
   webServer: {
-    command: "npx tsx packages/server/src/main.ts",
+    // A notify target, so the settings screen's test button is live. Outside
+    // Home Assistant the sender only logs what it would send.
+    command:
+      "mkdir -p test-results/e2e-data && echo '{\"notify_targets\":[\"mobile_app_test\"]}' > test-results/e2e-data/options.json && npx tsx packages/server/src/main.ts",
     url: "http://localhost:8099/api/snapshot",
     reuseExistingServer: false,
     env: {
