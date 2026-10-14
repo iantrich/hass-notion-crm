@@ -19,3 +19,21 @@ app's backend.
 Configuration is documented in [`thread/DOCS.md`](thread/DOCS.md).
 
 Requires Home Assistant OS or a Supervised install.
+
+## Development
+
+The app is a TypeScript monorepo (Node 22):
+
+| Package | Contents |
+|---|---|
+| `packages/core` | Domain logic ported from the iOS app: models, Notion decoding and mapping, ordering, search, contact status and actions, and the daily notifications. Pure functions, no I/O. |
+
+```bash
+npm install
+npm run typecheck && npm run lint && npm test
+```
+
+Dates that are calendar days (birthdays, interaction dates) are plain
+`YYYY-MM-DD` strings. A time zone only enters when turning an instant into a
+day, and it's always passed explicitly, so results don't depend on the machine
+running them.
