@@ -21,6 +21,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - run: npm run build -w @thread/server
       # The domain logic works in calendar days, so results must not depend
       # on the machine's zone. A zone far from UTC catches regressions.
       - run: npm test

@@ -1,0 +1,16 @@
+{
+  "name": "@thread/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "THREAD_DEV=1 THREAD_MOCK=1 tsx watch src/main.ts",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/server.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\""
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@thread/core": "*",
+    "hono": "^4.6.0",
+    "zod": "^3.23.0"
+  }
+}

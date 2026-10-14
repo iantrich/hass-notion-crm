@@ -1,11 +1,15 @@
 name: Thread
-version: "0.0.6"
+version: "0.1.0"
 slug: thread
 description: Personal CRM backed by Notion
 url: https://github.com/iantrich/hass-notion-crm
 arch:
   - aarch64
   - amd64
+# Prebuilt by .github/workflows/publish.yml. Supervisor pulls this rather than
+# building, because the build needs the whole repository (packages/), not just
+# this folder.
+image: ghcr.io/iantrich/{arch}-hass-notion-crm
 init: false
 ingress: true
 ingress_port: 8099
@@ -13,11 +17,25 @@ panel_icon: mdi:account-heart
 panel_title: Thread
 panel_admin: true
 homeassistant_api: true
+# Both rebuild from Notion, so keep personal data out of backups.
+backup_exclude:
+  - snapshot.json*
+  - avatars
+  - avatars/*
 options:
   allowed_user_ids: []
   notify_targets: []
+  sync_interval_minutes: 15
 schema:
+  notion_token: password?
+  me_person_id: str?
+  data_source_people: str?
+  data_source_households: str?
+  data_source_groups: str?
+  data_source_relationships: str?
+  data_source_interactions: str?
   allowed_user_ids:
     - str
   notify_targets:
     - str
+  sync_interval_minutes: int(5,240)
