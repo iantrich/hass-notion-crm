@@ -5,6 +5,7 @@ import {
   makePerson,
   nameList,
   notificationFor,
+  notificationRoute,
   overdueNotification,
   type Interaction,
   type Person,
@@ -28,6 +29,7 @@ describe("birthday notification", () => {
       kind: "birthday",
       title: "🎂 Mera Richardson's birthday",
       body: "",
+      personIds: ["1"],
     });
   });
 
@@ -79,6 +81,7 @@ describe("overdue notification", () => {
       kind: "overdue",
       title: "Adam McLaughlin just passed 6 weeks",
       body: "",
+      personIds: ["1"],
     });
     // One alert per episode: the day after, it's silent again.
     expect(overdueNotification(people, interactions, "2026-08-23")).toBeNull();
@@ -113,6 +116,7 @@ describe("journal notification", () => {
       kind: "journal",
       title: "Log today's interactions",
       body: "Anyone you talked to today?",
+      personIds: [],
     });
   });
 
@@ -133,5 +137,15 @@ describe("notificationFor", () => {
     const all = (["birthday", "overdue", "journal"] as const).map((kind) => notificationFor(kind, people, interactions, day));
     expect(all.map((n) => n?.kind)).toEqual(["birthday", "overdue", "journal"]);
     expect(new Set(all.map((n) => n?.id)).size).toBe(3);
+  });
+});
+
+describe("notificationRoute", () => {
+  it("opens the person when there's one, the list when there are several", () => {
+    expect(notificationRoute({ kind: "birthday", personIds: ["p 1"] })).toBe("/person/p%201");
+    expect(notificationRoute({ kind: "birthday", personIds: ["a", "b"] })).toBe("/birthdays");
+    expect(notificationRoute({ kind: "overdue", personIds: ["a"] })).toBe("/person/a");
+    expect(notificationRoute({ kind: "overdue", personIds: ["a", "b"] })).toBe("/reach-out");
+    expect(notificationRoute({ kind: "journal", personIds: [] })).toBe("");
   });
 });

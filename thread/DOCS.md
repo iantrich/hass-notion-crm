@@ -54,10 +54,26 @@ Thread sends three notifications a day, in Home Assistant's time zone:
 Before each one it syncs with Notion, so changes made there count. Each goes
 out at most once a day. If Home Assistant or the app is down at that time, a
 restart within the hour still sends it; after that it waits for tomorrow.
-Tapping a notification opens Thread.
+Tapping a notification opens the screen it's about: the person, when there's
+one, otherwise the birthday list or Reach Out. The evening reminder opens Home.
 
 **Settings** (the gear on Home) shows when each was last checked and has a
 **Send test notification** button.
+
+### Home screen shortcut
+
+iOS only lets an app put its own icon on the home screen, so Thread's goes
+through the Shortcuts app and the Companion app. **Settings → Home screen
+shortcut** has the link and the icon:
+
+1. Copy the link (`homeassistant://navigate/app/<id>`) and save the icon.
+2. In Shortcuts, make a shortcut with the **Open URLs** action and paste the
+   link.
+3. Name it Thread and use **Add to Home Screen** with the icon.
+
+Add `/reach-out`, `/search` or `/add` to the end of the link to open that
+screen. The link includes Thread's app ID, which changes if the repository is
+re-added under a different URL; Settings always shows the current one.
 
 ### `sync_interval_minutes`
 

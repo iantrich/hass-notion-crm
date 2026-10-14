@@ -84,11 +84,14 @@ async function main() {
     options,
     timeZone: () => timeZone,
     mobileAppServices: () => supervisor?.mobileAppServices() ?? Promise.resolve([]),
+    panelPath: panelPath(),
     peerAddress: (c: Context) => (c.env as { incoming?: { socket?: { remoteAddress?: string } } }).incoming?.socket?.remoteAddress,
     dev: DEV,
     notifications: {
       status: () => scheduler.status(),
-      test: () => sender.send({ kind: "test", title: "Thread", body: "Notifications are working. Tap to open Thread." }),
+      // Opens Settings, so tapping it also proves deep links work.
+      test: () =>
+        sender.send({ kind: "test", title: "Thread", body: "Notifications are working. Tap to open Settings.", route: "/settings" }),
     },
     web: existsSync(join(WEB_DIR, "index.html")) ? new StaticFiles(WEB_DIR) : null,
     indexHtml: placeholderPage,

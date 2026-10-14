@@ -3,6 +3,7 @@ import { topBarAction } from "./components.js";
 import { ago } from "./format.js";
 import { icons } from "./icons.js";
 import { href, parseRoute, tabOf, type Route, type Tab } from "./router.js";
+import { startDeepLinks } from "./deepLink.js";
 import { goBack, load, noteNavigation, refresh, state, setRenderer, update } from "./state.js";
 import { addView } from "./views/add.js";
 import { birthdaysView, homeView, interactionsView } from "./views/home.js";
@@ -200,3 +201,11 @@ setRenderer(renderApp);
 state.lastTab = tabOf(state.route) ?? "home";
 renderApp();
 void load();
+startDeepLinks({
+  top: window.top,
+  parent: window.parent,
+  self: window,
+  navigate: (hash) => {
+    if (location.hash !== hash) location.hash = hash;
+  },
+});

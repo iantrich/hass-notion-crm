@@ -148,7 +148,7 @@ describe("HomeAssistantSender", () => {
   it("sends to every target with a tap URL for the panel", async () => {
     const { impl, requests } = fakeFetch(() => json({}));
     const sender = new HomeAssistantSender(new SupervisorClient("tok", impl), () => ["mobile_app_a", "mobile_app_b"], "/app/33991357_thread");
-    const failures = await sender.send({ kind: "birthday", title: "🎂 3 birthdays today", body: "A, B, C" });
+    const failures = await sender.send({ kind: "birthday", title: "🎂 3 birthdays today", body: "A, B, C", personIds: ["a", "b", "c"] });
     expect(failures).toEqual([]);
     expect(requests.map((r) => r.url)).toEqual([
       "http://supervisor/core/api/services/notify/mobile_app_a",
@@ -157,16 +157,24 @@ describe("HomeAssistantSender", () => {
     expect(requests[0]?.body).toEqual({
       title: "🎂 3 birthdays today",
       message: "A, B, C",
-      data: { url: "/app/33991357_thread", group: "thread-birthday" },
+      data: { url: "/app/33991357_thread/birthdays", group: "thread-birthday" },
     });
   });
 
   it("sends a one-line notification as the message alone", async () => {
     const { impl, requests } = fakeFetch(() => json({}));
     const sender = new HomeAssistantSender(new SupervisorClient("tok", impl), () => ["mobile_app_a"], "/app/x");
-    await sender.send({ kind: "birthday", title: "🎂 Mera's birthday", body: "" });
-    expect(requests[0]?.body).toMatchObject({ message: "🎂 Mera's birthday" });
+    await sender.send({ kind: "birthday", title: "🎂 Mera's birthday", body: "", personIds: ["p1"] });
+    expect(requests[0]?.body).toMatchObject({ message: "🎂 Mera's birthday", data: { url: "/app/x/person/p1" } });
     expect(requests[0]?.body).not.toHaveProperty("title");
+  });
+
+  it("links the journal reminder to Home, and a route override wins", async () => {
+    const { impl, requests } = fakeFetch(() => json({}));
+    const sender = new HomeAssistantSender(new SupervisorClient("tok", impl), () => ["t"], "/app/x");
+    await sender.send({ kind: "journal", title: "Log", body: "b", personIds: [] });
+    await sender.send({ kind: "test", title: "Thread", body: "b", route: "/settings" });
+    expect(requests.map((r) => (r.body as { data: { url: string } }).data.url)).toEqual(["/app/x", "/app/x/settings"]);
   });
 
   it("reports each failed target, and having no targets", async () => {

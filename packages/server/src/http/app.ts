@@ -26,6 +26,8 @@ export interface AppDeps {
   timeZone: () => string;
   // notify.mobile_app_* services, for the setup screen. Empty outside HA.
   mobileAppServices: () => Promise<string[]>;
+  // Thread's panel in Home Assistant ("/app/<full slug>"), for shortcuts.
+  panelPath: string;
   // The connecting socket's address; injectable for tests.
   peerAddress: (c: Context) => string | undefined;
   // Local development: any peer, and no HA user header required.
@@ -186,6 +188,7 @@ export function createApp(deps: AppDeps) {
       notifyTargets: options.notifyTargets,
       mobileAppServices: await mobileAppServices(),
       timeZone: deps.timeZone(),
+      panelPath: deps.panelPath,
     }),
   );
 

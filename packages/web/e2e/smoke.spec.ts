@@ -102,3 +102,10 @@ test("settings shows notification times and sends a test", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText("Test sent");
   expect(errors).toEqual([]);
 });
+
+test("settings offers a home screen shortcut", async ({ page }) => {
+  await page.goto("/#/settings");
+  await expect(page.getByText(/^homeassistant:\/\/navigate\/app\//)).toBeVisible();
+  const icon = await page.request.get("/icon-512.png");
+  expect(icon.headers()["content-type"]).toBe("image/png");
+});
