@@ -1,5 +1,6 @@
 import http from "node:http";
 import { existsSync, readFileSync } from "node:fs";
+import { hostname } from "node:os";
 
 const INGRESS_PROXY = "172.30.32.2";
 const PORT = 8099;
@@ -34,8 +35,10 @@ function send(res, status, type, body) {
 
 // Apps from a custom repository get a slug prefixed with a repository hash
 // (e.g. "a1b2c3d4_thread"). Supervisor names the container's host after it,
-// with "_" swapped for "-", so the full slug can be recovered from HOSTNAME.
-const APP_SLUG = (process.env.HOSTNAME ?? "thread").replace(/-/g, "_");
+// with "_" swapped for "-", so the full slug can be recovered from it. Read
+// the kernel hostname: like SUPERVISOR_TOKEN, the HOSTNAME variable doesn't
+// survive s6-overlay's environment reset.
+const APP_SLUG = hostname().replace(/-/g, "_");
 
 // s6-overlay resets the environment for the container's CMD, so the token the
 // Supervisor injects may only be readable from s6's saved copy.
