@@ -67,6 +67,25 @@ async function notify(target, url) {
   return `${response.status} ${detail}`;
 }
 
+// The notify services HA actually has, so notify_targets can be copied rather
+// than guessed: Core answers a misnamed service with a bare 400.
+async function mobileAppServices() {
+  const { token } = supervisorToken();
+  if (!token) return ["(no token)"];
+  try {
+    const response = await fetch("http://supervisor/core/api/services", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) return [`(services lookup failed: ${response.status})`];
+    const domains = await response.json();
+    const notify = domains.find((d) => d.domain === "notify");
+    const names = Object.keys(notify?.services ?? {}).filter((n) => n.startsWith("mobile_app_"));
+    return names.length ? names : ["(none found)"];
+  } catch (error) {
+    return [`(services lookup failed: ${error.message})`];
+  }
+}
+
 const SPIKE_JS = `
 document.addEventListener("click", (event) => {
   const el = event.target.closest("[data-mode]");
@@ -86,7 +105,7 @@ document.addEventListener("click", (event) => {
 });
 `;
 
-const page = (userId, ingressPath, allowed) => `<!doctype html>
+const page = (userId, ingressPath, allowed, services) => `<!doctype html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thread spike</title>
@@ -103,6 +122,8 @@ const page = (userId, ingressPath, allowed) => `<!doctype html>
 <p>Ingress path: <code>${escapeHtml(ingressPath ?? "(none)")}</code></p>
 <p>Allowed: <b>${allowed ? "yes" : "no"}</b></p>
 <p>Supervisor token: <b>${escapeHtml(supervisorToken().source)}</b></p>
+<p>Mobile app notify services (use one of these in notify_targets):</p>
+<ul>${services.map((n) => `<li><code>${escapeHtml(n)}</code></li>`).join("")}</ul>
 <h2>Contact links (target=_top)</h2>
 <a href="tel:+15555550123" target="_top">tel: (fake number)</a>
 <a href="sms:+15555550123" target="_top">sms: (fake number)</a>
@@ -142,7 +163,7 @@ http
     const allowed = typeof userId === "string" && allowed_user_ids.includes(userId);
 
     if (req.method === "GET" && (req.url === "/" || req.url === "")) {
-      return send(res, 200, "text/html; charset=utf-8", page(userId, ingressPath, allowed));
+      return send(res, 200, "text/html; charset=utf-8", page(userId, ingressPath, allowed, await mobileAppServices()));
     }
 
     if (req.method === "GET" && req.url === "/spike.js") {
