@@ -1,10 +1,12 @@
-import type { DailyNotification } from "@thread/core";
+import { notificationRoute, type DailyNotification } from "@thread/core";
 import { log } from "../log.js";
 import type { SupervisorClient } from "../supervisor.js";
 import type { Sender } from "./scheduler.js";
 
 // Sends through Home Assistant's notify.<target> services. Tapping the
-// notification opens Thread's panel (/app/<full slug>, as the spike showed).
+// notification opens Thread's panel (/app/<full slug>, as the spike showed),
+// with the screen to show appended: the web app picks the tail up from Home
+// Assistant (see packages/web/src/deepLink.ts).
 export class HomeAssistantSender implements Sender {
   constructor(
     private readonly supervisor: SupervisorClient | null,
@@ -12,7 +14,14 @@ export class HomeAssistantSender implements Sender {
     private readonly panelPath: string,
   ) {}
 
-  async send(notification: { kind: DailyNotification["kind"] | "test"; title: string; body: string }): Promise<string[]> {
+  async send(notification: {
+    kind: DailyNotification["kind"] | "test";
+    title: string;
+    body: string;
+    personIds?: string[];
+    // Overrides the screen worked out from kind and personIds.
+    route?: string;
+  }): Promise<string[]> {
     const targets = this.targets();
     if (targets.length === 0) return ["no notify_targets configured"];
     if (!this.supervisor) {
@@ -25,7 +34,7 @@ export class HomeAssistantSender implements Sender {
     const message = {
       ...(notification.body ? { title: notification.title } : {}),
       message: notification.body || notification.title,
-      data: { url: this.panelPath, group: `thread-${notification.kind}` },
+      data: { url: this.panelPath + (notification.route ?? routeOf(notification)), group: `thread-${notification.kind}` },
     };
     const failures: string[] = [];
     for (const target of targets) {
@@ -37,4 +46,9 @@ export class HomeAssistantSender implements Sender {
     }
     return failures;
   }
+}
+
+function routeOf(notification: { kind: string; personIds?: string[] }): string {
+  if (notification.kind === "test") return "";
+  return notificationRoute({ kind: notification.kind as DailyNotification["kind"], personIds: notification.personIds ?? [] });
 }

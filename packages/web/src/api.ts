@@ -28,6 +28,7 @@ export interface SetupResponse {
   notifyTargets: string[];
   mobileAppServices: string[];
   timeZone: string;
+  panelPath: string;
 }
 
 export interface NotificationStatus {

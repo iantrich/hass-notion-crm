@@ -31,6 +31,7 @@ async function makeApp({ dev = false, peer = INGRESS_PROXY, web = null as Static
     options: parseOptions({ allowed_user_ids: [ME], me_person_id: "mock-me" }),
     timeZone: () => "America/Chicago",
     mobileAppServices: async () => ["mobile_app_iphone"],
+    panelPath: "/app/33991357_thread",
     peerAddress: () => peer,
     dev,
     web,
@@ -149,6 +150,7 @@ describe("routes", () => {
     expect(await (await app.request("/api/setup", as(ME))).json()).toMatchObject({
       mobileAppServices: ["mobile_app_iphone"],
       timeZone: "America/Chicago",
+      panelPath: "/app/33991357_thread",
     });
   });
 

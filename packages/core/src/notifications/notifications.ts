@@ -23,6 +23,9 @@ export interface DailyNotification {
   kind: NotificationKind;
   title: string;
   body: string;
+  // Who it's about, so a tap can open the right screen: a single person
+  // opens their page, several open the matching list.
+  personIds: string[];
 }
 
 const MAX_NAMES_IN_BODY = 4;
@@ -50,6 +53,7 @@ function collapsed(
     // A single name is already in the title; repeating it as the body reads
     // like a stutter on the Lock Screen.
     body: names.length === 1 ? "" : nameList(names),
+    personIds: people.map((p) => p.id),
   };
 }
 
@@ -104,6 +108,7 @@ export function journalNotification(
     kind: "journal",
     title: "Log today's interactions",
     body: "Anyone you talked to today?",
+    personIds: [],
   };
 }
 
@@ -121,4 +126,14 @@ export function notificationFor(
     case "journal":
       return journalNotification(interactions, today);
   }
+}
+
+// The screen a tap on the notification opens, as a Thread route ("" for
+// Home): the person when there's one, otherwise the list they come from.
+export function notificationRoute(notification: Pick<DailyNotification, "kind" | "personIds">): string {
+  const [only, ...rest] = notification.personIds;
+  if (only && rest.length === 0) return `/person/${encodeURIComponent(only)}`;
+  if (notification.kind === "birthday") return "/birthdays";
+  if (notification.kind === "overdue") return "/reach-out";
+  return "";
 }

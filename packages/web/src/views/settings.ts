@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import type { NotificationStatus } from "../api.js";
 import { ago, formatMonthDay } from "../format.js";
-import { loadSettings, refresh, sendTestNotification, state } from "../state.js";
+import { loadSettings, refresh, sendTestNotification, state, toast } from "../state.js";
 import type { View } from "./view.js";
 
 const LABELS: Record<NotificationStatus["kinds"][number]["kind"], string> = {
@@ -74,6 +74,40 @@ export function settingsView(): View {
             </button>
           </div>`
         : nothing}
+      ${shortcutSection()}
     </div>`,
   };
+}
+
+// iOS only lets an app put its own icon on the home screen, so the shortcut
+// goes through the Shortcuts app and the Companion app's URL scheme, which
+// opens any Home Assistant path, Thread's panel included.
+function shortcutSection() {
+  const panel = state.setup?.panelPath;
+  if (!panel) return nothing;
+  const url = `homeassistant://navigate${panel}`;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Copied.");
+    } catch {
+      toast("Couldn't copy. Select the link and copy it instead.");
+    }
+  };
+  return html`<div class="label list-label">Home screen shortcut</div>
+    <div style="padding:4px 16px 16px;display:grid;gap:10px;font-size:12.5px">
+      <code style="word-break:break-all;user-select:all;background:var(--surface);padding:10px;border-radius:10px">${url}</code>
+      <div style="display:flex;gap:8px">
+        <button class="btn secondary" @click=${copy}>Copy link</button>
+        <a class="btn secondary" style="display:inline-grid;place-items:center" href="icon-512.png" download="Thread.png" target="_blank" rel="noopener"
+          >Save icon</a
+        >
+      </div>
+      <ol class="muted" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>Copy the link and save the icon to Photos.</li>
+        <li>In the Shortcuts app, make a new shortcut with the <b>Open URLs</b> action and paste the link.</li>
+        <li>Rename it Thread, then use <b>Add to Home Screen</b> and pick the icon from Photos.</li>
+      </ol>
+      <div class="muted">Add <code>/reach-out</code> or <code>/add</code> to the end of the link to open that screen instead.</div>
+    </div>`;
 }
