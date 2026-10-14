@@ -93,7 +93,34 @@ function shell(view: View): TemplateResult {
 
 const root = document.getElementById("app") as HTMLElement;
 
+// A screen that throws while drawing shows the error rather than leaving the
+// previous screen (often the loading spinner) up with no explanation.
+function crashScreen(error: unknown): TemplateResult {
+  const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  return html`<div class="center">
+    <div style="max-width:460px">
+      <div class="h-serif" style="font-size:19px;margin-bottom:12px">Thread hit a problem</div>
+      <pre class="mono" style="white-space:pre-wrap;font-size:11px;text-align:left;color:var(--danger)">${message}</pre>
+      <button class="btn" @click=${() => location.reload()}>Reload</button>
+    </div>
+  </div>`;
+}
+
 function renderApp() {
+  try {
+    render(screenFor(), root);
+  } catch (error) {
+    console.error(error);
+    render(crashScreen(error), root);
+  }
+}
+
+window.addEventListener("unhandledrejection", (event) => {
+  console.error(event.reason);
+  render(crashScreen(event.reason), root);
+});
+
+function screenFor(): TemplateResult {
   const phase = state.phase;
   let template: TemplateResult;
   if (phase.kind === "loading") template = loadingScreen();
@@ -101,7 +128,7 @@ function renderApp() {
   else if (phase.kind === "error") template = errorScreen(phase.message);
   else if (!state.data?.snapshot) template = state.data?.status.isRefreshing ? loadingScreen("First sync with Notion…") : setupScreen();
   else template = shell(viewFor(state.route));
-  render(template, root);
+  return template;
 }
 
 // Each screen keeps its scroll position for when you come back to it.

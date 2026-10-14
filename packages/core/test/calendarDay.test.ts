@@ -27,4 +27,21 @@ describe("calendar days", () => {
     expect(dayOf(instant, "America/Chicago")).toBe("2026-08-21");
     expect(dayOf(instant, "UTC")).toBe("2026-08-22");
   });
+
+  it("always produces YYYY-MM-DD, whatever the runtime's locale data", () => {
+    // Regression: en-CA formatting was assumed to give YYYY-MM-DD, but a
+    // Node.js without full locale data falls back to en-US ("10/14/2026").
+    const original = Intl.DateTimeFormat;
+    const fallback = function (_locale?: string | string[], options?: Intl.DateTimeFormatOptions) {
+      return new original("en-US", options);
+    } as unknown as typeof Intl.DateTimeFormat;
+    Intl.DateTimeFormat = fallback;
+    try {
+      for (const zone of ["America/Chicago", "Asia/Kolkata", "Pacific/Kiritimati", "UTC"]) {
+        expect(isCalendarDay(dayOf(new Date("2026-01-02T12:00:00Z"), zone))).toBe(true);
+      }
+    } finally {
+      Intl.DateTimeFormat = original;
+    }
+  });
 });
