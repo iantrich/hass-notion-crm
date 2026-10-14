@@ -1,0 +1,134 @@
+/* Thread's palette and type, from the iOS app's Theme.swift. The app is dark
+   by design, like the iOS app, whatever Home Assistant's own theme is. */
+:root {
+  --bg: #14181f;
+  --surface: #1e232c;
+  --text: #edeae3;
+  --text-2: #9aa1ae;
+  --border: #2b313c;
+  --gold: #d9a45c;
+  --gold-soft: #3a2f1e;
+  --thread: #4a4438;
+  --danger: #d9694a;
+  --serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --tabbar: 56px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+body { font: 14px/1.4 var(--sans); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+input, textarea { font: inherit; color: var(--text); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+#app { height: 100%; }
+.shell { display: flex; flex-direction: column; height: 100%; }
+
+/* Top bar: back on the left, actions on the right, like the iOS nav bar. */
+.topbar {
+  display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 8px;
+  border-bottom: 1px solid var(--border); background: var(--bg); flex: none;
+}
+.topbar .title { flex: 1; font: 600 16px var(--serif); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 10px; color: var(--text); }
+.icon-btn:hover { background: var(--surface); }
+.icon-btn.gold { color: var(--gold); }
+.icon-btn.muted { color: var(--text-2); }
+.icon-btn[disabled] { opacity: 0.4; cursor: default; }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.content { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 24px; position: relative; }
+.page { max-width: 640px; margin: 0 auto; }
+
+/* Bottom tabs. */
+.tabbar {
+  flex: none; display: flex; height: calc(var(--tabbar) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--border); background: var(--bg);
+}
+.tabbar a, .tabbar button { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+.tabbar .active { color: var(--gold); }
+.tabbar svg { width: 22px; height: 22px; }
+
+/* Type. */
+.h-serif { font-family: var(--serif); font-weight: 600; }
+.mono { font-family: var(--mono); }
+.label { font: 500 10.5px var(--mono); color: var(--text-2); letter-spacing: 0.02em; text-transform: uppercase; }
+.muted { color: var(--text-2); }
+.gold { color: var(--gold); }
+.danger { color: var(--danger); }
+
+/* Lists. */
+.section { margin: 16px 0 0; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 16px 6px; }
+.section-head h2 { margin: 0; font: 600 17px var(--serif); }
+.section-head a, .section-head button { font: 600 12px var(--sans); color: var(--gold); }
+.list { background: var(--surface); }
+.row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; min-height: 56px; border-bottom: 1px solid var(--border); width: 100%; text-align: left; }
+.row:last-child { border-bottom: 0; }
+.row:hover { background: #232933; }
+.row .main { flex: 1; min-width: 0; }
+.row .name { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .sub { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .meta { font: 500 10.5px var(--mono); color: var(--text-2); flex: none; }
+.row .star { color: var(--gold); display: inline-block; width: 10px; height: 10px; margin-left: 6px; vertical-align: 1px; }
+/* Icons fill whatever box holds them; an unsized SVG would draw at 300×150. */
+svg { display: block; width: 100%; height: 100%; }
+.list-label { padding: 10px 16px 4px; }
+.empty { padding: 24px 16px; color: var(--text-2); text-align: center; }
+
+/* Avatars. */
+.avatar { flex: none; border-radius: 50%; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; background: var(--gold-soft); color: var(--gold); font-family: var(--serif); font-weight: 600; position: relative; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.stack { display: inline-flex; flex: none; }
+.stack .avatar { box-shadow: 0 0 0 2px var(--surface); }
+
+/* Cards and chips. */
+.card { background: var(--surface); border-radius: 14px; margin: 0 16px 18px; padding: 10px 13px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--thread); border-radius: 999px; font-size: 10.5px; color: var(--gold); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pills { display: flex; gap: 7px; overflow-x: auto; padding: 4px 0; }
+.pill { flex: none; min-height: 36px; padding: 6px 14px; border-radius: 999px; background: var(--surface); color: var(--text-2); font: 500 11.5px var(--sans); }
+.pill.on { background: var(--gold); color: var(--bg); }
+.pill.mono { font: 500 11px var(--mono); }
+.pill.mono.on { background: var(--text); color: var(--bg); }
+
+/* Forms. */
+.form { padding: 8px 16px; display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field > span { font: 500 10.5px var(--mono); color: var(--text-2); text-transform: uppercase; }
+.input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 15px; }
+.input:focus { border-color: var(--gold); outline: none; }
+textarea.input { min-height: 110px; resize: vertical; }
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.check input { width: 20px; height: 20px; accent-color: var(--gold); }
+.btn { min-height: 44px; padding: 0 18px; border-radius: 12px; background: var(--text); color: var(--bg); font-weight: 600; }
+.btn[disabled] { opacity: 0.4; cursor: default; }
+.btn.danger { background: var(--danger); }
+.btn.secondary { background: var(--surface); color: var(--text); }
+
+/* Banners and states. */
+.banner { margin: 8px 16px; padding: 8px 12px; border-radius: 12px; background: var(--danger); color: var(--bg); font: 500 11px var(--mono); }
+.notice { margin: 8px 16px; padding: 8px 12px; border-radius: 12px; background: var(--gold-soft); color: var(--gold); font: 500 11px var(--mono); }
+.center { min-height: 60vh; display: grid; place-items: center; text-align: center; padding: 24px; }
+.spinner { width: 22px; height: 22px; border: 2px solid var(--thread); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ptr { height: 0; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; transition: height 0.15s; }
+.ptr .spinner { margin: 0 0 10px; }
+
+/* Sheets (log/edit interaction) and dialogs. */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+.sheet { background: var(--bg); width: 100%; max-width: 640px; max-height: 94%; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+.sheet .sheet-body { overflow-y: auto; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.dialog { background: var(--surface); border-radius: 16px; padding: 20px; margin: auto 16px; max-width: 360px; width: 100%; display: grid; gap: 14px; text-align: center; }
+.dialog .actions { display: flex; gap: 8px; justify-content: center; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--tabbar) + 16px + env(safe-area-inset-bottom)); background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 12px; z-index: 20; font-size: 13px; }
+
+/* Person screen action row: fixed-width buttons, the first one primary. */
+.actions-row { display: flex; gap: 8px; padding: 0 20px 18px; }
+.action { width: 54px; height: 38px; border-radius: 12px; background: var(--surface); color: var(--text); display: inline-flex; align-items: center; justify-content: center; }
+.action svg { width: 17px; height: 17px; }
+.action.primary { background: var(--text); color: var(--bg); }

@@ -1,0 +1,14 @@
+{
+  "name": "@thread/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@thread/core": "*",
+    "lit": "^3.2.0"
+  }
+}

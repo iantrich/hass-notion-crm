@@ -1,3 +1,4 @@
+import { extname } from "node:path";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import {
@@ -12,6 +13,7 @@ import { NotionError } from "../notion/errors.js";
 import { missingNotionSettings, type Options } from "../options.js";
 import { NotSyncedError, type AppState } from "../state/appState.js";
 import type { PlaceholderInfo } from "./placeholder.js";
+import type { StaticFiles } from "./static.js";
 
 // The Supervisor's ingress proxy: the only peer allowed to connect.
 export const INGRESS_PROXY = "172.30.32.2";
@@ -27,7 +29,9 @@ export interface AppDeps {
   peerAddress: (c: Context) => string | undefined;
   // Local development: any peer, and no HA user header required.
   dev: boolean;
-  // Served for anything that isn't /api. A status page until Milestone 4.
+  // The built web app. Without it (running the server alone), "/" falls back
+  // to the server-rendered status page.
+  web: StaticFiles | null;
   indexHtml: (info: PlaceholderInfo) => string;
 }
 
@@ -258,6 +262,16 @@ export function createApp(deps: AppDeps) {
   app.all("/api/*", (c) => c.json({ error: "not_found" }, 404));
 
   app.get("*", async (c) => {
+    if (deps.web) {
+      // The web app handles not-allowed and setup states itself, from the API.
+      const path = c.req.path === "/" ? "/index.html" : c.req.path;
+      const file = (await deps.web.file(path)) ?? (extname(path) ? null : await deps.web.index());
+      if (!file) return c.text("Not found", 404);
+      return c.body(new Uint8Array(file.body), 200, {
+        "Content-Type": file.contentType,
+        "Cache-Control": file.cacheControl,
+      });
+    }
     const userId = c.req.header("X-Remote-User-Id") ?? null;
     const allowed = (userId !== null && options.allowedUserIds.includes(userId)) || (deps.dev && userId === null);
     const snapshot = state.current();
