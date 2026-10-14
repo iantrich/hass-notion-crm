@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dayOf, daysBetween, inYear, isCalendarDay } from "../src/index.js";
+import { addDays, dayOf, daysBetween, inYear, isCalendarDay, localTime } from "../src/index.js";
 
 describe("calendar days", () => {
   it("validates real days only", () => {
@@ -43,5 +43,20 @@ describe("calendar days", () => {
     } finally {
       Intl.DateTimeFormat = original;
     }
+  });
+});
+
+describe("localTime", () => {
+  it("gives the day, hour and minute in a named zone", () => {
+    // 15:30 UTC is 10:30 in Chicago (daylight time), 21:00 in Kolkata, and
+    // already the next morning in Kiritimati.
+    const instant = new Date("2026-08-21T15:30:00Z");
+    expect(localTime(instant, "America/Chicago")).toEqual({ day: "2026-08-21", hour: 10, minute: 30 });
+    expect(localTime(instant, "Asia/Kolkata")).toEqual({ day: "2026-08-21", hour: 21, minute: 0 });
+    expect(localTime(instant, "Pacific/Kiritimati")).toEqual({ day: "2026-08-22", hour: 5, minute: 30 });
+  });
+
+  it("reports midnight as hour 0", () => {
+    expect(localTime(new Date("2026-08-21T05:00:00Z"), "America/Chicago").hour).toBe(0);
   });
 });

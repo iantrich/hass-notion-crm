@@ -89,3 +89,35 @@ export function dayOf(instant: Date, timeZone: string): CalendarDay {
   if (!isCalendarDay(day)) throw new Error(`Couldn't work out the date in ${timeZone}: got ${day}`);
   return day;
 }
+
+export interface LocalTime {
+  day: CalendarDay;
+  hour: number;
+  minute: number;
+}
+
+const timeFormatters = new Map<string, Intl.DateTimeFormat>();
+
+// The day, hour (0–23) and minute an instant falls on in `timeZone`. Like
+// dayOf, assembled from numeric parts so locale data can't change the shape.
+export function localTime(instant: Date, timeZone: string): LocalTime {
+  let formatter = timeFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      calendar: "gregory",
+      numberingSystem: "latn",
+    });
+    timeFormatters.set(timeZone, formatter);
+  }
+  const parts = formatter.formatToParts(instant);
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    throw new Error(`Couldn't work out the time in ${timeZone}`);
+  }
+  return { day: dayOf(instant, timeZone), hour: hour % 24, minute };
+}

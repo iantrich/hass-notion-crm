@@ -89,3 +89,16 @@ test("contact links open outside the iframe", async ({ page }) => {
   }
   await expect(page.getByRole("link", { name: "Call" })).toHaveAttribute("href", "tel:+15555550102");
 });
+
+test("settings shows notification times and sends a test", async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto("/");
+  await page.getByRole("link", { name: "Settings" }).click();
+  await expect(page.getByText("Birthdays")).toBeVisible();
+  await expect(page.getByText("Close friends at 6 weeks")).toBeVisible();
+  await expect(page.getByText("21:00")).toBeVisible();
+  await expect(page.getByText("mobile_app_test")).toBeVisible();
+  await page.getByRole("button", { name: "Send test notification" }).click();
+  await expect(page.getByRole("status")).toContainText("Test sent");
+  expect(errors).toEqual([]);
+});

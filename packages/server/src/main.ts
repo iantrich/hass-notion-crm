@@ -14,7 +14,9 @@ import { DATA_SOURCE_LABELS, LiveNotionService, type NotionService } from "./not
 import { loadOptions, missingNotionSettings } from "./options.js";
 import { AppState } from "./state/appState.js";
 import { SnapshotStore } from "./state/snapshotStore.js";
-import { SupervisorClient, supervisorToken } from "./supervisor.js";
+import { HomeAssistantSender } from "./notifications/sender.js";
+import { NotificationScheduler, NotificationStore } from "./notifications/scheduler.js";
+import { panelPath, SupervisorClient, supervisorToken } from "./supervisor.js";
 
 const PORT = 8099;
 const DATA_DIR = process.env.THREAD_DATA_DIR ?? "/data";
@@ -68,6 +70,14 @@ async function main() {
   const cached = state.current();
   if (cached) avatars.register(cached);
 
+  const sender = new HomeAssistantSender(supervisor, () => options.notifyTargets, panelPath());
+  const scheduler = new NotificationScheduler({
+    state,
+    store: new NotificationStore(DATA_DIR),
+    sender,
+    timeZone: () => timeZone,
+  });
+
   const app = createApp({
     state,
     avatars,
@@ -76,6 +86,10 @@ async function main() {
     mobileAppServices: () => supervisor?.mobileAppServices() ?? Promise.resolve([]),
     peerAddress: (c: Context) => (c.env as { incoming?: { socket?: { remoteAddress?: string } } }).incoming?.socket?.remoteAddress,
     dev: DEV,
+    notifications: {
+      status: () => scheduler.status(),
+      test: () => sender.send({ kind: "test", title: "Thread", body: "Notifications are working. Tap to open Thread." }),
+    },
     web: existsSync(join(WEB_DIR, "index.html")) ? new StaticFiles(WEB_DIR) : null,
     indexHtml: placeholderPage,
   });
@@ -86,6 +100,7 @@ async function main() {
   if (canSync) {
     void state.refresh();
     setInterval(() => void state.refresh(), options.syncIntervalMinutes * 60_000);
+    scheduler.start();
   }
 }
 

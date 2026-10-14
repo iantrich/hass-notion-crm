@@ -12,6 +12,7 @@ import { groupView, householdView } from "./views/members.js";
 import { personView } from "./views/person.js";
 import { reachOutView } from "./views/reachOut.js";
 import { searchView } from "./views/search.js";
+import { settingsView } from "./views/settings.js";
 import { errorScreen, loadingScreen, notAllowedScreen, setupScreen } from "./views/status.js";
 import type { View } from "./views/view.js";
 
@@ -37,6 +38,8 @@ function viewFor(route: Route): View {
       return groupView(route.id);
     case "interaction":
       return interactionView(route.id, route.sheet);
+    case "settings":
+      return settingsView();
   }
 }
 

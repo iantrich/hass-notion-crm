@@ -14,6 +14,7 @@ import { SnapshotStore } from "../src/state/snapshotStore.js";
 import { fakeFetch } from "./helpers.js";
 
 const ME = "user-ian";
+let testFailures: string[] = [];
 const photo = "https://files.example.com/ws/uuid/image.png";
 
 async function makeApp({ dev = false, peer = INGRESS_PROXY, web = null as StaticFiles | null } = {}) {
@@ -33,6 +34,10 @@ async function makeApp({ dev = false, peer = INGRESS_PROXY, web = null as Static
     peerAddress: () => peer,
     dev,
     web,
+    notifications: {
+      status: async () => [{ kind: "birthday" as const, hour: 10, lastSent: "2026-10-14" }],
+      test: async () => testFailures,
+    },
     indexHtml: placeholderPage,
   });
   return { app, state };
@@ -145,6 +150,20 @@ describe("routes", () => {
       mobileAppServices: ["mobile_app_iphone"],
       timeZone: "America/Chicago",
     });
+  });
+
+  it("reports notification status and sends a test", async () => {
+    expect(await (await app.request("/api/notifications", as(ME))).json()).toMatchObject({
+      timeZone: "America/Chicago",
+      kinds: [{ kind: "birthday", hour: 10, lastSent: "2026-10-14" }],
+    });
+    testFailures = [];
+    expect((await app.request("/api/notifications/test", write("POST", {}))).status).toBe(200);
+    testFailures = ["mobile_app_iphone: 400"];
+    const failed = await app.request("/api/notifications/test", write("POST", {}));
+    expect(failed.status).toBe(502);
+    expect(await failed.json()).toEqual({ sent: false, failures: ["mobile_app_iphone: 400"], message: "mobile_app_iphone: 400" });
+    testFailures = [];
   });
 
   it("answers unknown API routes with 404 JSON", async () => {
